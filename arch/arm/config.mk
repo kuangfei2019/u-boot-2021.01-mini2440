@@ -100,7 +100,7 @@ PLATFORM_LIBS := arch/arm/lib/eabi_compat.o \
 endif
 
 # needed for relocation
-LDFLAGS_u-boot += -pie
+#LDFLAGS_u-boot += -pie
 
 #
 # FIXME: binutils versions < 2.22 have a bug in the assembler where
@@ -122,7 +122,7 @@ endif
 
 ifneq ($(CONFIG_SPL_BUILD),y)
 # Check that only R_ARM_RELATIVE relocations are generated.
-INPUTS-y += checkarmreloc
+#INPUTS-y += checkarmreloc
 # The movt / movw can hardcode 16 bit parts of the addresses in the
 # instruction. Relocation is not supported for that case, so disable
 # such usage by requiring word relocations.

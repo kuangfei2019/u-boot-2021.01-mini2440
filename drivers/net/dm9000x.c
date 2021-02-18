@@ -282,7 +282,8 @@ dm9000_reset(void)
 */
 static int dm9000_init(struct eth_device *dev, struct bd_info *bd)
 {
-	int i, oft, lnk;
+//	int i, oft, lnk;
+	int i, oft;
 	u8 io_mode;
 	struct board_info *db = &dm9000_info;
 
@@ -368,12 +369,14 @@ static int dm9000_init(struct eth_device *dev, struct bd_info *bd)
 	while (!(dm9000_phy_read(1) & 0x20)) {	/* autonegation complete bit */
 		udelay(1000);
 		i++;
-		if (i == 10000) {
-			printf("could not establish link\n");
-			return 0;
+	//	if (i == 10000) {
+		if (i == 1000) {
+		//	printf("could not establish link\n");
+		//	return 0;
+			break;
 		}
 	}
-
+#if 0
 	/* see what we've got */
 	lnk = dm9000_phy_read(17) >> 12;
 	printf("operating at ");
@@ -395,6 +398,7 @@ static int dm9000_init(struct eth_device *dev, struct bd_info *bd)
 		break;
 	}
 	printf("mode\n");
+#endif
 	return 0;
 }
 

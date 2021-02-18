@@ -12,40 +12,54 @@
 #include <common.h>
 #include <init.h>
 #include <netdev.h>
+#include <cpu_func.h>
 #include <asm/io.h>
 #include <asm/arch/s3c24x0_cpu.h>
 #include <asm/mach-types.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 
-#define M_LIMILT	3600
-#define U_LIMILT	3600
-
-#define DIVN_UPLL	0
-#define HDIVN		2
-#define PDIVN		1
-
 #define FCLK_SPEED 1
 
-#if (FCLK_SPEED == 0)		/* Fout = 203MHz, Fin = 12MHz for Audio */
+#if FCLK_SPEED==0		/* Fout = 203MHz, Fin = 12MHz for Audio */
 #define M_MDIV	0xC3
 #define M_PDIV	0x4
 #define M_SDIV	0x1
-#elif (FCLK_SPEED == 1)		/* Fout = 400MHz */
-#define M_MDIV	0x5C
-#define M_PDIV	0x1
+#elif FCLK_SPEED==1		/* Fout = 202.8MHz */
+
+#if defined(CONFIG_S3C2410)
+/* Fout = 202.8MHz */
+#define M_MDIV	0xA1
+#define M_PDIV	0x3
 #define M_SDIV	0x1
+#endif
+
+#if defined(CONFIG_S3C2440)
+/* Fout = 405MHz */
+#define M_MDIV 0x7f
+#define M_PDIV 0x2
+#define M_SDIV 0x1
+#endif
 #endif
 
 #define USB_CLOCK 1
 
-#if (USB_CLOCK == 0)
+#if USB_CLOCK==0
 #define U_M_MDIV	0xA1
 #define U_M_PDIV	0x3
 #define U_M_SDIV	0x1
-#elif (USB_CLOCK == 1)		/* Fout = 48MHz*/
-#define U_M_MDIV	0x38
-#define U_M_PDIV	0x2
+#elif USB_CLOCK==1
+
+#if defined(CONFIG_S3C2410)
+#define U_M_MDIV	0x48
+#define U_M_PDIV	0x3
+#endif
+
+#if defined(CONFIG_S3C2440)
+#define U_M_MDIV 0x38
+#define U_M_PDIV 0x2
+#endif
+
 #define U_M_SDIV	0x2
 #endif
 
@@ -67,38 +81,21 @@ int board_early_init_f(void)
 	struct s3c24x0_gpio * const gpio = s3c24x0_get_base_gpio();
 
 	/* to reduce PLL lock time, adjust the LOCKTIME register */
-	writel((U_LIMILT << 16) + M_LIMILT, 
-		   &clk_power->locktime);
-	/* writel(val,addr)展开相当于： 
-	   { 
-		   u32 __v=val;
-		   asm volatile ("" : : : "memory");	// 内存屏障
-		   *(volatile unsigned int *)(addr) = (val);
-		   val;
-	   }
-	*/
-	writel((DIVN_UPLL << 3) + (HDIVN << 1) + PDIVN,
-		   &clk_power->clkdivn);
-
-	asm volatile (
-		"mrc p15,0,r0,c1,c0,0\n"
-		"orr r0,r0,#0xc0000000\n"
-		"mcr p15,0,r0,c1,c0,0\n"
-	);
+	writel(0xFFFFFF, &clk_power->locktime);
 
 	/* configure MPLL */
 	writel((M_MDIV << 12) + (M_PDIV << 4) + M_SDIV,
 	       &clk_power->mpllcon);
 
 	/* some delay between MPLL and UPLL */
-	pll_delay(800);
+	pll_delay(4000);
 
 	/* configure UPLL */
 	writel((U_M_MDIV << 12) + (U_M_PDIV << 4) + U_M_SDIV,
 	       &clk_power->upllcon);
 
 	/* some delay between MPLL and UPLL */
-	pll_delay(800);
+	pll_delay(8000);
 
 	/* set up the I/O ports */
 	writel(0x007FFFFF, &gpio->gpacon);
@@ -122,28 +119,22 @@ int board_early_init_f(void)
 
 int board_init(void)
 {
-	// gd->bd->bi_arch_number = MACH_TYPE_JZ2440;
+	gd->bd->bi_arch_number = MACH_TYPE_MINI2440;
 
 	gd->bd->bi_boot_params = (PHYS_SDRAM_1 + 0x100UL);
+
+	icache_enable();
+        dcache_enable();
 
 	return 0;
 }
 
 int dram_init(void)
 {
-	// gd->ram_size = PHYS_SDRAM_1_SIZE;
-	// return 0;
-	
-	unsigned int i;
-	unsigned long addr;
-
-	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
-		addr = CONFIG_SYS_SDRAM_BASE + (i * SDRAM_BANK_SIZE);
-		gd->ram_size += get_ram_size((long *)addr, SDRAM_BANK_SIZE);
-	}
+	gd->ram_size = PHYS_SDRAM_1_SIZE;
 	return 0;
 }
-
+#if 0
 int dram_init_banksize(void)
 {
 	unsigned int i;
@@ -159,6 +150,7 @@ int dram_init_banksize(void)
 
 	return 0;
 }
+#endif
 
 #ifdef CONFIG_CMD_NET
 int board_eth_init(struct bd_info *bis)

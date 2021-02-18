@@ -67,9 +67,9 @@
 #define B2_Tacp			0x0
 #define B2_PMC			0x0
 
-#define B3_Tacs			0x0	/*  0clk */
-#define B3_Tcos			0x3	/*  4clk */
-#define B3_Tacc			0x7	/* 14clk */
+#define B3_Tacs			0xc	/*  0clk */
+#define B3_Tcos			0x7	/*  4clk */
+#define B3_Tacc			0xf	/* 14clk */
 #define B3_Tcoh			0x1	/*  1clk */
 #define B3_Tah			0x0	/*  0clk */
 #define B3_Tacp			0x3	/*  6clk */
@@ -78,15 +78,15 @@
 #define B4_Tacs			0x0	/*  0clk */
 #define B4_Tcos			0x0	/*  0clk */
 #define B4_Tacc			0x7	/*14clk */
-#define B4_Tcoh			0x1	/*  1clk */
+#define B4_Tcoh			0x0	/*  1clk */
 #define B4_Tah			0x0	/*  0clk */
 #define B4_Tacp			0x0
 #define B4_PMC			0x0	/* normal */
 
-#define B5_Tacs			0x0	/*  0clk */
-#define B5_Tcos			0x0	/*  0clk */
-#define B5_Tacc			0x7	/* 14clk */
-#define B5_Tcoh			0x0	/*  0clk */
+#define B5_Tacs			0xc	/*  0clk */
+#define B5_Tcos			0x7	/*  0clk */
+#define B5_Tacc			0xf	/* 14clk */
+#define B5_Tcoh			0x1	/*  0clk */
 #define B5_Tah			0x0	/*  0clk */
 #define B5_Tacp			0x0
 #define B5_PMC			0x0	/* normal */
@@ -102,10 +102,15 @@
 /* REFRESH parameter */
 #define REFEN			0x1		/* Refresh enable */
 #define TREFMD			0x0		/* CBR(CAS before RAS)/Auto refresh */
-#define Trp				0x0		/* 2clk */
-#define Tsrc			0x0		/* 4clk */
-// #define Tchr			0x2		/* 3clk */
-#define REFCNT			1269	/* period=7.8us, HCLK=100Mhz, (2^11+1-7.8*100) */
+#define Tsrc			0x3		/* 4clk */
+#define Tchr			0x2		/* 3clk */
+#if defined(CONFIG_S3C2440)
+#define Trp			0x2	/* 4clk */
+#define REFCNT			1012
+#else
+#define Trp			0x0	/* 2clk */
+#define REFCNT			0x0459
+#endif
 /**************************************/
 
 .globl lowlevel_init
@@ -131,16 +136,16 @@ lowlevel_init:
 /* the literal pools origin */
 
 SMRDATA:
-    .word (0+(B1_BWSCON<<4)+(B2_BWSCON<<8)+(B3_BWSCON<<12)+(B4_BWSCON<<16)+(B5_BWSCON<<20)+(B6_BWSCON<<24)+(B7_BWSCON<<28))		/* BWSCON */
-    .word ((B0_Tacs<<13)+(B0_Tcos<<11)+(B0_Tacc<<8)+(B0_Tcoh<<6)+(B0_Tah<<4)+(B0_Tacp<<2)+(B0_PMC))								/* BANKCON0 */
-    .word ((B1_Tacs<<13)+(B1_Tcos<<11)+(B1_Tacc<<8)+(B1_Tcoh<<6)+(B1_Tah<<4)+(B1_Tacp<<2)+(B1_PMC))								/* BANKCON1 */
-    .word ((B2_Tacs<<13)+(B2_Tcos<<11)+(B2_Tacc<<8)+(B2_Tcoh<<6)+(B2_Tah<<4)+(B2_Tacp<<2)+(B2_PMC))								/* BANKCON2 */
-    .word ((B3_Tacs<<13)+(B3_Tcos<<11)+(B3_Tacc<<8)+(B3_Tcoh<<6)+(B3_Tah<<4)+(B3_Tacp<<2)+(B3_PMC))								/* BANKCON3 */
-    .word ((B4_Tacs<<13)+(B4_Tcos<<11)+(B4_Tacc<<8)+(B4_Tcoh<<6)+(B4_Tah<<4)+(B4_Tacp<<2)+(B4_PMC))								/* BANKCON4 */
-    .word ((B5_Tacs<<13)+(B5_Tcos<<11)+(B5_Tacc<<8)+(B5_Tcoh<<6)+(B5_Tah<<4)+(B5_Tacp<<2)+(B5_PMC))								/* BANKCON5 */
-    .word ((B6_MT<<15)+(B6_Trcd<<2)+(B6_SCAN))																					/* BANKCON6 */
-    .word ((B7_MT<<15)+(B7_Trcd<<2)+(B7_SCAN))																					/* BANKCON7 */
-    .word ((REFEN<<23)+(TREFMD<<22)+(Trp<<20)+(Tsrc<<18)++REFCNT)																/* REFRESH */
-    .word 0xb1																													/* BANKSIZE */
-    .word 0x20																													/* MRSRB6 */
-    .word 0x20																													/* MRSRB7 */
+    .word (0+(B1_BWSCON<<4)+(B2_BWSCON<<8)+(B3_BWSCON<<12)+(B4_BWSCON<<16)+(B5_BWSCON<<20)+(B6_BWSCON<<24)+(B7_BWSCON<<28)) /* BWSCON */
+    .word ((B0_Tacs<<13)+(B0_Tcos<<11)+(B0_Tacc<<8)+(B0_Tcoh<<6)+(B0_Tah<<4)+(B0_Tacp<<2)+(B0_PMC)) /* BANKCON0 */
+    .word ((B1_Tacs<<13)+(B1_Tcos<<11)+(B1_Tacc<<8)+(B1_Tcoh<<6)+(B1_Tah<<4)+(B1_Tacp<<2)+(B1_PMC)) /* BANKCON1 */
+    .word ((B2_Tacs<<13)+(B2_Tcos<<11)+(B2_Tacc<<8)+(B2_Tcoh<<6)+(B2_Tah<<4)+(B2_Tacp<<2)+(B2_PMC)) /* BANKCON2 */
+    .word ((B3_Tacs<<13)+(B3_Tcos<<11)+(B3_Tacc<<8)+(B3_Tcoh<<6)+(B3_Tah<<4)+(B3_Tacp<<2)+(B3_PMC)) /* BANKCON3 */
+    .word ((B4_Tacs<<13)+(B4_Tcos<<11)+(B4_Tacc<<8)+(B4_Tcoh<<6)+(B4_Tah<<4)+(B4_Tacp<<2)+(B4_PMC)) /* BANKCON4 */
+    .word ((B5_Tacs<<13)+(B5_Tcos<<11)+(B5_Tacc<<8)+(B5_Tcoh<<6)+(B5_Tah<<4)+(B5_Tacp<<2)+(B5_PMC)) /* BANKCON5 */
+    .word ((B6_MT<<15)+(B6_Trcd<<2)+(B6_SCAN))	/* BANKCON6 */
+    .word ((B7_MT<<15)+(B7_Trcd<<2)+(B7_SCAN))	/* BANKCON7 */
+    .word ((REFEN<<23)+(TREFMD<<22)+(Trp<<20)+(Tsrc<<18)++REFCNT) /* REFRESH */
+    .word 0xb2 	/* BANKSIZE */
+    .word 0x30	/* MRSRB6 */
+    .word 0x30	/* MRSRB7 */
