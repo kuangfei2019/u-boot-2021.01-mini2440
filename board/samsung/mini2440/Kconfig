@@ -1,0 +1,30 @@
+if TARGET_MINI2440
+
+config SYS_CONFIG_NAME
+	default "mini2440"
+
+config SYS_BOARD
+	default "mini2440"
+
+config SYS_VENDOR
+	default "samsung"
+
+config SYS_CPU
+	default "arm920t"
+
+config SYS_SOC
+	default "s3c24x0"
+
+config S3C24X0
+	bool
+	default "y"
+
+config S3C2440
+	bool
+	default "y"
+
+config MINI2440
+	bool
+	default "y"
+
+endif
